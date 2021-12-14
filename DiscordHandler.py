@@ -10,7 +10,6 @@ title4 = "scientist"
 
 class DiscordHandler(discord.Client):
     def init(self, titlesQueue):
-        print(f'Save Queue objects in Discord Bot')
         self.dukeQueue = titlesQueue["dukeQueue"]
         self.architectQueue = titlesQueue["architectQueue"]
         self.justiceQueue = titlesQueue["justiceQueue"]
@@ -45,15 +44,15 @@ class DiscordHandler(discord.Client):
     async def processRequest(self, status, order, message):
         titleQueue = self.getQueueTitle(order.title)
         if titleQueue is None:
-            await message.channel.send('Error! The title of: {1} does not exist {0}'.format(message.author.mention, order.title))
+            await message.channel.send('Error! The title of: {0} does not exist {1}'.format(order.title, message.author.mention))
             return
         
         # Status 1: Request for a title
-        # Status 2: Release of a title
         if status == 1:
-            await message.channel.send('Roger! The title of: {1} has been reserved for {0}'.format(message.author.mention, order.title))
+            await message.channel.send('Roger! The title of: {0} has been reserved for {1}'.format(order.title, message.author.mention))
             titleQueue.put(order)
 
+        # Status 2: Release of a title
         elif status == 2:
             await message.channel.send('Roger! Title {0} has been released. Thanks {1}'.format(order.title, message.author.mention))
             titleQueue.done(message.author)

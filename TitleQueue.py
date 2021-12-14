@@ -31,8 +31,7 @@ class TitleQueue:
     self.queue.put(order)
   
   def done(self, userName):
-    # Finalize the request only if the user that has initiated calls 'done'
-    print(userName)
+    # Finalize the request only if the user owns the reservation
     if (self.currentUser == userName):
       print(f'User {userName} done with {self.type}.')
       self.isDone = True
