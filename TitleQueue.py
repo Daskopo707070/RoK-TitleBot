@@ -39,10 +39,7 @@ class TitleQueue:
   
   def timer(self, timeout):
     self.isDone = False
-    start = time.perf_counter()
-    end = time.perf_counter()
-    while end - start < timeout and not self.isDone:
-      end = time.perf_counter()
-      print(end)
+    startTime = time.perf_counter()
+    while time.perf_counter() - startTime < timeout and not self.isDone:
       time.sleep(1)
 
