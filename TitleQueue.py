@@ -28,13 +28,19 @@ class TitleQueue:
       self.queue.task_done()
 
   def put(self, order):
-    self.queue.put(order)
+    try:
+      self.queue.put(order)
+      return True
+    except:
+      print(f'Failed to add request {order} to queue {self.type}')
+      return False
   
   def done(self, userName):
     # Finalize the request only if the user owns the reservation
     if (self.currentUser == userName):
       print(f'User {userName} done with {self.type}.')
       self.isDone = True
+      return True
   
   def timer(self, timeout):
     self.isDone = False

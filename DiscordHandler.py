@@ -48,14 +48,14 @@ class DiscordHandler(discord.Client):
             return
         
         # Status 1: Request for a title
-        if status == 1:
-            await message.channel.send('Roger! The title of: {0} has been reserved for {1}'.format(order.title, message.author.mention))
-            titleQueue.put(order)
+        if status == 1:            
+            if titleQueue.put(order):
+                await message.channel.send('Roger! The title of: {0} has been reserved for {1}'.format(order.title, message.author.mention))
 
         # Status 2: Release of a title
         elif status == 2:
-            await message.channel.send('Roger! Title {0} has been released. Thanks {1}'.format(order.title, message.author.mention))
-            titleQueue.done(message.author)
+            if titleQueue.done(message.author):
+                await message.channel.send('Roger! Title {0} has been released. Thanks {1}'.format(order.title, message.author.mention))
 
         else:
             print()
