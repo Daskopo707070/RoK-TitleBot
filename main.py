@@ -4,6 +4,11 @@ from DiscordHandler import DiscordHandler
 from TitleQueue import TitleQueue
 from TitleType import TitleType
 from helpers import initWorker
+import os
+from dotenv import load_dotenv
+
+# Load local Environment Variables
+load_dotenv()
 
 # Create Rok Bot
 rokBot = RokBot()
@@ -29,6 +34,6 @@ discordHandler = DiscordHandler()
 
 # Pass the Queue object so the discord bot can add tasks to the Queue
 discordHandler.init(titlesQueues)
-discordHandler.run(("OTE4NDc5NzM0NjEzMDk4NDk2.YbH26Q.HzxX0pdb-be-cJGi2rGyhapYPxs")) #The mumbo jumbo as the parameter is the "key" for the discord bot
+discordHandler.run((os.environ['DISCORD_BOT'])) #The mumbo jumbo as the parameter is the "key" for the discord bot
 
 print('Application finished')
