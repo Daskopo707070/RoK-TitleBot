@@ -37,70 +37,35 @@ class DiscordHandler(discord.Client):
             print("bot down")
             await self.close()
         
-        if 'done' in temp:
-            await self.processDone(message)
-            return
-
-        await self.processTitle(message)
-
-    async def processDone(self, message):
-        # Removes first char
-        title = message.system_content[1:]
-        # takes just the title
-        title = title.split()[0]
-
-        if title == title1:
-            self.dukeQueue.done(message.author)
-
-        elif title == title2: 
-            self.architectQueue.done(message.author)
-
-        elif title == title3:
-            self.justiceQueue.done(message.author)
-
-        elif title == title4:  
-            self.scientistQueue.done(message.author)
-
-    async def processTitle(self, message):
         status, title, X, Y = Command_handler(message.system_content)
+        order = TitleOrder(title, X, Y, message.author)
 
+        await self.processRequest(status, order, message)
+
+    async def processRequest(self, status, order, message):
+        titleQueue = self.getQueueTitle(order.title)
+        if titleQueue is None:
+            await message.channel.send('Error! The title of: {1} does not exist {0}'.format(message.author.mention, order.title))
+            return
+        
+        # Status 1: Request for a title
+        # Status 2: Release of a title
         if status == 1:
-            order = TitleOrder(title, X, Y, message.author)
-
-            if order.title == title1:
-                print(order.title)
-                print(order.X)
-                print(order.Y)
-                await message.channel.send('Roger! The title of: {1} has been reserved for {0}'.format(message.author.mention,title))
-                self.dukeQueue.put(order)
-
-            elif order.title == title2:
-                print(order.title)
-                print(order.X)
-                print(order.Y)
-                await message.channel.send('Roger! The title of: {1} has been reserved for {0}'.format(message.author.mention,title))  
-                self.architectQueue.put(order)
-
-            elif order.title == title3:
-                print(order.title)
-                print(order.X)
-                print(order.Y)
-                await message.channel.send('Roger! The title of: {1} has been reserved for {0}'.format(message.author.mention,title))  
-                self.justiceQueue.put(order)
-
-            elif order.title == title4:
-                print(order.title)
-                print(order.X)
-                print(order.Y)
-                await message.channel.send('Roger! The title of: {1} has been reserved for {0}'.format(message.author.mention,title))   
-                self.scientistQueue.put(order)
-
-            else:
-                await message.channel.send('Error! The title of: {1} does not exist {0}'.format(message.author.mention,title))   
+            await message.channel.send('Roger! The title of: {1} has been reserved for {0}'.format(message.author.mention, order.title))
+            titleQueue.put(order)
 
         elif status == 2:
-            print()
+            await message.channel.send('Roger! Title {0} has been released. Thanks {1}'.format(order.title, message.author.mention))
+            titleQueue.done(message.author)
 
         else:
             print()
     
+    def getQueueTitle(self, title):
+        queueDic = {
+            "duke": self.dukeQueue,
+            "architect": self.architectQueue,
+            "justice": self.justiceQueue,
+            "scientist": self.scientistQueue
+        }
+        return queueDic.get(title)
