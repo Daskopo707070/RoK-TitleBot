@@ -1,5 +1,4 @@
 def Command_handler(command):
-    print(command)
     content = command.split()
     if len(content) > 1:
         if content[0] == "$title":
