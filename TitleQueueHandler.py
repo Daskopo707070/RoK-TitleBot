@@ -1,7 +1,7 @@
 import queue
 import time
 
-class TitleQueue:
+class TitleQueueHandler:
   def __init__(self, titleType, rokBotQueue):
     self.queue = queue.Queue()
     self.rokBotQueue = rokBotQueue

@@ -1,7 +1,7 @@
 import threading, queue
 from RokBot import RokBot
 from DiscordHandler import DiscordHandler
-from TitleQueue import TitleQueue
+from TitleQueueHandler import TitleQueueHandler
 from TitleType import TitleType
 from helpers import initWorker
 import os
@@ -18,10 +18,10 @@ threading.Thread(target=initWorker, args=[rokBot], daemon=True).start()
 
 # Creating one queue for each title
 titlesQueues = {
-  'dukeQueue': TitleQueue(TitleType.DUKE, rokBot.queue),
-  'architectQueue': TitleQueue(TitleType.ARCHITECT, rokBot.queue),
-  'justiceQueue': TitleQueue(TitleType.JUSTICE, rokBot.queue),
-  'scientistQueue': TitleQueue(TitleType.SCIENTIST, rokBot.queue)
+  'dukeQueue': TitleQueueHandler(TitleType.DUKE, rokBot.queue),
+  'architectQueue': TitleQueueHandler(TitleType.ARCHITECT, rokBot.queue),
+  'justiceQueue': TitleQueueHandler(TitleType.JUSTICE, rokBot.queue),
+  'scientistQueue': TitleQueueHandler(TitleType.SCIENTIST, rokBot.queue)
 }
 
 # Run all Title queues in seprated thread. Each Thread will receive an order from discord bot. Each request will be added to
