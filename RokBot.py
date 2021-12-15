@@ -7,7 +7,6 @@ class RokBot:
 
   def start(self):
     while True:
-      self.log('Waiting to receive tasks.')
       order = self.queue.get()
       self.log('Task received.')
       self.processRequest(order)
