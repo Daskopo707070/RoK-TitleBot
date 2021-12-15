@@ -44,12 +44,17 @@ class DiscordHandler(discord.Client):
     async def processRequest(self, status, order, message):
         titleQueue = self.getQueueTitle(order.title)
         if titleQueue is None:
-            await message.channel.send('Error! The title of: {0} does not exist {1}'.format(order.title, message.author.mention))
+            await message.channel.send('Error! The inputed title does not exist {1}'.format(message.author.mention))
             return
         
         # Status 1: Request for a title
-        if status == 1:            
-            if titleQueue.put(order):
+        if status == 1:
+            # Check if the user has a opened request. This is to prevent same user requesting multiple time in a row
+            isUserOnQueue = titleQueue.isUserOnQueue(order)
+            if isUserOnQueue:
+                await message.channel.send('Sorry {0}, you have already a request pending for {1}'.format(message.author.mention, order.title))
+
+            elif titleQueue.put(order):
                 await message.channel.send('Roger! The title of: {0} has been reserved for {1}'.format(order.title, message.author.mention))
 
         # Status 2: Release of a title
