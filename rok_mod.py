@@ -142,6 +142,7 @@ def screenshotOfCaptcha():
 	#print(ran)
 	im.save(resource_path(ran))
 	return
+
 #opens the captcha png and its info to extract the objects needed to a png
 def captchaToObjects():
 	global obj1FirstXPixel
@@ -219,6 +220,8 @@ def captchaToObjects():
 	obj1FirstXPixel = obj1FirstXPixel-15
 	obj2FirstXPixel = obj2FirstXPixel-15
 	return
+
+
 #get individual image of one object from the image with the objects
 def getObj(objN):
 
@@ -287,9 +290,12 @@ def getPuzzleImageFromCaptcha():
 	randomN = randrange(20)
 	ran= "captchaClean.png"
 	im.save(resource_path(ran))
+	print("End of get puzzle")
 	return
+
 #algorithm where the match between the obN.png and the captchaClean.png is found
 def findObj(objN,whiteBG):
+	print("finobj begins")
 	maxValue=0
 	maxI=0
 	maxj=0
@@ -298,16 +304,19 @@ def findObj(objN,whiteBG):
 	py=0
 	#try six different cv2.Threshold values (basically change contrast and light)
 	for x in range(6):
-		#print("X: "+str(x)+"/6")
+		print("X: "+str(x)+"/6")
 		img = cv2.imread("captchaClean.png",0)
 		retval, img = cv2.threshold(img, x*40,230, cv2.THRESH_TOZERO)
+		img = cv2.resize(img,(100,100),fx=1.1,fy=1.1, interpolation=cv2.INTER_CUBIC)
 		cv2.imwrite("screenshots/captcha.png",img)
 
 		method = cv2.TM_SQDIFF_NORMED
-
+		print("ob"+objN+".png")
 		template = cv2.imread("ob"+objN+".png", 0)
+		#cv2.imshow('image', template)
 		#every other X change from black and white to white and black, higher chance of success this way
 		if x % 2 != 0:
+			print("x % 2 != 0")
 			whiteBG = False
 			template = cv2.bitwise_not(template)
 		else:
@@ -315,22 +324,30 @@ def findObj(objN,whiteBG):
 
 		#every 10 iterations make the obN bigger
 		for i in range (10):
+			print(i)
 			if(i != 0):
-				template = cv2.imread("template/tmpl"+str(i-1)+"angle0.png", 0)
-			template = cv2.resize(template,(0,0),fx=1.1,fy=1.1, interpolation=cv2.INTER_CUBIC)
+				print("i != 0")
 
+				template = cv2.imread("template.png", 0)
+			#cv2.imshow('image2', template)
+			template = cv2.resize(template,(100,100),fx=1.1,fy=1.1, interpolation=cv2.INTER_CUBIC)
+
+			cv2.imshow('image', template)
 			#every 36 iterations rotate objN 10º
 			for j in range (36):
 				img = cv2.imread('screenshots/captcha.png', 0)
 				img2 = cv2.imread('screenshots/captcha.png', 1)
+				#cv2.imshow('image2', img)
 				template=rotate_image(template, 10,whiteBG)
 				cv2.imwrite("template/tmpl"+str(i)+"angle"+str(j*10)+".png",template)
 
 				w, h = template.shape[::-1]	#width and height of the template
 
-				#img3 = img2.copy()
+				img3 = img2.copy()
 
 				res = cv2.matchTemplate(img,template,cv2.TM_CCOEFF_NORMED) #result of the match between the template and the captchaClean using TM_CCOEFF_NORMED method
+				print("res: {}".format(res)) 
+
 				min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 
 				top_left = max_loc #coordinates of the top left corner of the match of the template within the captchaClean
@@ -351,11 +368,13 @@ def findObj(objN,whiteBG):
 	#once finished, tap the location with the best match
 	tap(((py)+(yRes*0.213))/yRes,((px)+(xRes*0.34))/xRes)
 
-	#print(((py)+(yRes*0.213))/yRes, " ",((px)+(xRes*0.34))/xRes)
-	#print(str(maxValue)+" "+str(maxI)+" "+str(maxJ)+" "+str(maxX))
+	print(((py)+(yRes*0.213))/yRes, " ",((px)+(xRes*0.34))/xRes)
+	print(str(maxValue)+" "+str(maxI)+" "+str(maxJ)+" "+str(maxX))
 	return
 #check if the tapped results give a success notification, if not, re-roll to new captcha
+
 def checkCaptchaSuccess(whiteBG):
+	print("here")
 	image = device.screencap() #take screenshot
 	with open(resource_path('resultCaptcha.png'), 'wb') as f:
 		f.write(image)
@@ -869,13 +888,18 @@ def startCaptcha():
 	start = time.time()
 	tap(.2,.7)
 	tap(.5,.6)
-	#time.sleep(4)
-	#testCaptcha(False)
-	#end = time.time()
-	#print("It took me: ", str(end - start), "s to find 1 object")
-	tap(.9,.1)
-	time.sleep(0.5)
-	tap(.9,.1)
+	time.sleep(1)
+	testCaptcha(False)
+	end = time.time()
+	print("It took me: ", str(end - start), "s to find 1 object")
+
+	tap(.9,.5)
+
+	tap(0.1,0.1)
+
+	time.sleep(.5)
+
+	tap(0.1,0.1)
 
 #not working given that the center is always changing
 def goHome():
@@ -1227,18 +1251,8 @@ print("It took me: ", str(end - start), "s to find 1 object")"""
 window = tk.Tk()
 getImagePlsBtn = tk.Button(text="getImagePls", command=getImagePls)
 getImagePlsBtn.pack()
-makeTroopsBtn = tk.Button(text="makeTroops", command=makeTroops)
+makeTroopsBtn = tk.Button(text="Givetitle", command=makeTroops)
 makeTroopsBtn.pack()
-searchMarauderBtn = tk.Button(text="searchMarauder", command=searchMarauder)
-searchMarauderBtn.pack()
-clarionCallBtn = tk.Button(text="Clerion Call", command=clarionCallAttack)
-clarionCallBtn.pack()
-startPuzzleBtn = tk.Button(text="Start Puzzle", command=startPuzzle)
-startPuzzleBtn.pack()
-farmBtn = tk.Button(text="Farm RSS", command=farm)
-farmBtn.pack()
-farmBarbsBtn = tk.Button(text="Farm Barbs", command=startFarmBarbs)
-farmBarbsBtn.pack()
 startCaptchaBtn = tk.Button(text="Captcha", command=startCaptcha)
 startCaptchaBtn.pack()
 window.mainloop()
