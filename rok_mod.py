@@ -73,6 +73,7 @@ class bcolors:
 # boop beep = healing
 # beep boop beep = sending email
 
+
 # Global Vars
 inReset = False
 inAttack = False
