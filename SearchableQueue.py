@@ -23,3 +23,9 @@ class SearchableQueue(Queue):
           isOnQueue = True
 
     return isOnQueue
+  
+  def getAllQueueItems(self):
+    allItems = []
+    for obj in self.queue:
+      allItems.append(vars(obj))
+    return allItems

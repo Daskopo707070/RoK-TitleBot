@@ -41,3 +41,22 @@ def Process_release(content):
         
     else: 
         return 0
+
+def ProcessAdminCommand(message):
+    # $admin duke clear
+    # $admin duke details
+    splitted = message.split()
+    title = splitted[1]
+    command = getQueueCommand(splitted[2])
+
+    return {
+        "title": title,
+        "command": command
+    }
+
+def getQueueCommand(command):
+    commands = {
+        "clear": "clearQueue",
+        "details": "getQueueDetails"
+    }
+    return commands.get(command)

@@ -44,6 +44,24 @@ class TitleQueueHandler:
     if (self.currentUser == userName):
       self.isDone = True
       return True
+  
+  def clearQueue(self):
+    with self.queue.mutex:
+      self.queue.queue.clear()
+
+    return 'Queue cleared.'
+  
+  def getQueueDetails(self):
+    allItems = self.queue.getAllQueueItems()
+
+    if len(allItems) == 0:
+      return 'Queue is empty.'
+
+    formmatedMessage = ''
+    for index, items in enumerate(allItems):
+      formmatedMessage = formmatedMessage + f'{index} {items["orderer"].name}, X: {items["X"]}, Y: {items["Y"]}\n'
+
+    return formmatedMessage
 
   def isUserOnQueue(self, order):
     if self.currentOrder is not None and self.currentOrder.orderer == order.orderer:

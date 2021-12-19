@@ -35,6 +35,21 @@ class DiscordHandler(discord.Client):
             await message.channel.send('shutting down')
             print("bot down")
             await self.close()
+        elif temp[1:6] == "admin":
+            if self.isAdmin(message.author.name) == False:
+                await message.channel.send('Forbidden! Not an admin.')
+                return
+
+            parsedCommand = ProcessAdminCommand(temp)
+            titleQueue = self.getQueueTitle(parsedCommand["title"])
+            try:
+                response = getattr(titleQueue, parsedCommand["command"])()
+                if response is not None:
+                    await message.channel.send(response)
+            except Exception as err:
+                await message.channel.send('Error! Admin command doesn\'t exist or bad formatted: {0}'.format(message.author.mention))
+                print(err) 
+            return
         
         status, title, X, Y = Command_handler(message.system_content)
         order = TitleOrder(title, X, Y, message.author)
@@ -44,7 +59,7 @@ class DiscordHandler(discord.Client):
     async def processRequest(self, status, order, message):
         titleQueue = self.getQueueTitle(order.title)
         if titleQueue is None:
-            await message.channel.send('Error! The inputed title does not exist {1}'.format(message.author.mention))
+            await message.channel.send('Error! The inputed title does not exist {0}'.format(message.author.mention))
             return
         
         # Status 1: Request for a title
@@ -73,3 +88,6 @@ class DiscordHandler(discord.Client):
             "scientist": self.scientistQueue
         }
         return queueDic.get(title)
+    
+    def isAdmin(self, user):
+        return user in ["daskop", "rafadess"]
