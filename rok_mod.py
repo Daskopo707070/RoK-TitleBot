@@ -10,6 +10,14 @@ import random
 from twocaptcha import TwoCaptcha
 import requests
 
+import sys
+import os
+
+api_key = os.getenv('APIKEY_2CAPTCHA', '090b372ea0fa1e8d50659047ae9c3646')
+
+solver = TwoCaptcha(api_key, defaultTimeout=120, pollingInterval=5)
+
+
 try:
     import winsound
 except ImportError:
@@ -72,7 +80,6 @@ class bcolors:
 # boop boop = new Attack
 # boop beep = healing
 # beep boop beep = sending email
-
 
 # Global Vars
 inReset = False
@@ -145,6 +152,11 @@ def screenshotOfCaptcha():
 	ran= "captcha.png"
 	#print(ran)
 	im.save(resource_path(ran))
+
+	im1 = Image.open('captcha.png')
+	rgb_im = im1.convert('RGB')
+	rgb_im.save('2captcha.jpg')
+
 	return
 
 #opens the captcha png and its info to extract the objects needed to a png
@@ -438,7 +450,7 @@ def testCaptcha(whiteBG):
 		#captcha solver here
 
 	tap(.8,.6)
-	checkCaptchaSuccess(whiteBG)
+	#checkCaptchaSuccess(whiteBG)
 	return
 	"""tap(.16,.85)
 	tap(.50,.65)
@@ -496,41 +508,7 @@ def tap (yPos, xPos):
 	time.sleep(.1)
 	inTap = False
 
-#if there's a victory, find and attack new barb
-def attack():
-	global inAttack
-	global inEmail
 
-	print(" preparing attack")
-	playsound(500, 200)
-	time.sleep(0.1)
-	playsound(500, 200)
-
-	inAttack=True
-	device.shell(f'input touchscreen swipe 50 820 50 820 200')#tap magnifying glass
-	time.sleep(1)
-	device.shell(f'input touchscreen swipe 400 750 400 750 10 ')#tap search button
-	time.sleep(1)
-	device.shell(f'input touchscreen swipe 960 540 960 540 100 ')#tap barb
-	time.sleep(1)
-
-	image = device.screencap() #take screenshot
-	with open(resource_path('screen2.png'), 'wb') as f:
-		f.write(image)
-	image = Image.open(resource_path('screen2.png'))
-	image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
-
-	#print(image[round(0.1343*yRes)][round(0.8692*xRes)], " ", checkPixel(0.1343,0.8692,230,0,0,image))
-	if (checkPixel(0.66,0.66,230,60,50,image) == None): # if red attack button doesnt appear
-		attack()
-	if (checkPixel(0.66,0.66,230,60,50,image) == True):
-		device.shell(f'input touchscreen swipe 1380 723 1380 723 100 ')#tap attack button
-		time.sleep(1)
-		device.shell(f'input touchscreen swipe 1830 320 1830 320 100 ') #tap army i want
-		time.sleep(1)
-		device.shell(f'input touchscreen swipe 1530 460 1530 460 100 ') #tap march button
-
-		inAttack=False
 
 
 
@@ -591,52 +569,6 @@ def getTextFromImage(xBeggining, xEnd, yBeggining, yEnd, isTitle):
 
 
 
-#receives an answer from chooseAnswer() and checks which option is the most similar
-def searchOption(question,bestQuestion, answer,A,B,D,C):
-	global questionEnded
-	print(bcolors.WARNING  +"\nTrying: ",answer, "\n" + bcolors.ENDC)
-	start = time.time()
-	answers = similar(answer,A),similar(answer,B),similar(answer,C),similar(answer,D) #stores the rate of similarity (0.0 to 1.0) of each option vs answer on this array
-
-	#searches for the biggest value (most similar option to its answer) and its id
-	bestOption = answers[0]
-	idBestOption = 0
-	for i in range (4):
-		print (i, " - ", answers[i])
-		if (bestOption<answers[i]):
-			bestOption = answers[i]
-			idBestOption=i
-	end = time.time()
-	print("It took me: ", str(end - start), "s to find the best option")
-	#if the best option isn't similar enough to the answer, then something went wrong, but the user can still click manually
-	if (bestOption < .6):
-		webbrowser.open('https://www.google.com/search?q='+question, new=2)
-		print(bcolors.FAIL +"Im not sure which option is it, but the answer is either ",answer, " or check the google page I opened"+ bcolors.ENDC)
-		questionEnded = True
-	#if the best option is similar enough, tap it prgrammatically
-	else:
-		if (idBestOption == 0):
-			print(bcolors.OKGREEN +"It's A - : ",A + bcolors.ENDC)
-			threading.Thread(target=tap, args=[.48,.3]).start()
-			questionEnded = True
-		elif (idBestOption == 1):
-			print(bcolors.OKGREEN +"It's: B - ",B + bcolors.ENDC)
-			threading.Thread(target=tap, args=[.48,.7]).start()
-			questionEnded = True
-		elif (idBestOption == 2):
-			print(bcolors.OKGREEN +"It's: C - ",C + bcolors.ENDC)
-			threading.Thread(target=tap, args=[.61,.3]).start()
-			questionEnded = True
-		elif (idBestOption == 3):
-			print(bcolors.OKGREEN +"It's: D - ",D + bcolors.ENDC)
-			threading.Thread(target=tap, args=[.61,.7]).start()
-			questionEnded = True
-		else:
-			print(bcolors.FAIL  +"ROKBOT didn't find an option found with this answer, check his tries, theres probably the right answer there, slightly different to the options in the display\n" + bcolors.ENDC)
-			questionEnded = True
-	print ("\n Thread Count: ", threading.active_count())
-	print("\n ----------------------------------------------------------------------\n")
-
 
 def lockQuestion():
 	while (questionEnded == False):
@@ -663,17 +595,6 @@ def startCaptcha():
 	tap(0.1,0.1)
 
 
-
-#not currently working
-def checkIfInGame():
-	time.sleep(1)
-	if(device.shell("pidof com.lilithgame.roc.gp") == ""):
-		device.shell("monkey -p com.lilithgame.roc.gp 1")
-		#exec(open("rok.py").read())
-		os.system("python rok.py")
-		sys.exit("Error message")
-	threading.Thread(target=checkIfInGame, args=[]).start()
-	return
 
 #multitouch try
 def swipe(xStart,yStart,xEnd,yEnd):
@@ -758,13 +679,6 @@ def startPuzzle():
 		print("It took me: ", str(end - start), "s to find 1 object")
 
 
-def attackMarauder():
-	cmd = 'input touchscreen swipe  800 500 850 500 500'
-	device.shell(cmd)
-	tap(.5,.5) #tap marauder
-	tap(.6,.3) #tap attack Button
-	tap(.20,.80) #tap new troops button
-	tap(.9,.75) #tap march button
 
 def zoomOut():
 	pyautogui.keyDown('down')
@@ -786,95 +700,23 @@ def makeTroops():
 	tap(.2,.7)
 
 
-def getImagePls():
-	for i in range (10000):
-		xEnd = .13
-		xBeggining = .06
-		yEnd = .905
-		yBeggining = .875
-		image = device.screencap() #take screenshot
-		with open(resource_path('screenPls.png'), 'wb') as f:
-			f.write(image)
-
-		image = Image.open(resource_path('screenPls.png'))
-		image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
-		xLocal=-1
-		yLocal=-1
-		xTotalPixels = round((xEnd - xBeggining) * xRes)
-		yTotalPixels = round((yEnd - yBeggining) * yRes)
-
-		newImage = numpy.zeros((yTotalPixels, xTotalPixels, 4)) #newImage is the same kind of array of the screenshot's data
-
-
-		#copy every pixel's color in the given coordinates and paste them, in the respective order, in the newImage's data array, starting at 0
-		for x in range(round(xBeggining*xRes), round(xEnd*xRes)-1):
-			xLocal+=1
-			yLocal=0
-			for y in range(round(yBeggining*yRes), round(yEnd*yRes)-1):
-				yLocal+=1
-				print(xLocal, ",", yLocal, " = ",image[y][x])
-				newImage[yLocal][xLocal] = image[y][x]
-
-		#formating the newImage array to the screenshot's type
-		newImage = numpy.array(newImage, dtype=numpy.uint8)
-		im = Image.fromarray(newImage)
-		ran= "screenPlsClean.png"
-		#print(ran)
-		im.save(resource_path(ran))
-		img = cv2.imread(resource_path(ran),0)
-		retval, img = cv2.threshold(img, 215,250, cv2.THRESH_BINARY)
-		img = cv2.bitwise_not(img) #invert colors, so tess can read it black on white (other way around gives much more innacurate results)
-		img = cv2.resize(img,(0,0),fx=3,fy=3, interpolation=cv2.INTER_CUBIC) #scaling up helps with accuracy
-		#Blurring edges makes them less sharp, tess likes that
-		img = cv2.GaussianBlur(img,(11,11),0)
-		img = cv2.medianBlur(img,5)
-		cv2.imshow('template',img)
-		cv2.waitKey(1)
-		#cv2.imshow('asd',img)
-		#cv2.waitKey(0)
-		#cv2.destroyAllWindows()
-		content = tess.image_to_string(img, lang='eng')
-		print(content)
-		if ("pls"  in content.lower() or "plz"  in content.lower() or "please"  in content.lower()):
-			print("oi")
-			device.shell(f'input touchscreen swipe 300 600 300 500 500')  #tap city
-			tap(.65,.10)
-			#do stuff
-			time.sleep(10)
-			tap(.95,.115)
-		else:
-			device.shell(f'input touchscreen swipe 300 600 300 570 500')  #tap city
-		#time.sleep(2)
-		"""if ("pls" or "plz" or "please" in content.lower()):
-			tap(.75,.10)
-			#do stuff
-			time.sleep(10)
-			tap(.95,.115)"""
-#every 1s take a screenshot and analyse it
-
 def SolveCaptcha():
-	i = 0
-	print("lol")
-	url = 'http://2captcha.com/in.php'
-	files = {'file' : open('captcha.png', 'rb')}
-	data = {'key': '090b372ea0fa1e8d50659047ae9c3646', 'method' : 'post'}
-	r = requests.post(url, files=files, data=data) 
 
-	time.sleep(200)
+	try:
+		result = solver.coordinates('2captcha.jpg', lang='en')
+	except Exception as e:
+		sys.exit(e)
+	else:
+		print("result: {}".format(result))
+		#Turn the 2captcha coords to something the bot can use
 
-	while(not r.ok):
-		time.sleep(5)
-		i= i + 1
-		print("i = {}".format(i))
 
-	print(r)
 
 
 
 #graphical interface initializations
 window = tk.Tk()
-getImagePlsBtn = tk.Button(text="getImagePls", command=getImagePls)
-getImagePlsBtn.pack()
+
 makeTroopsBtn = tk.Button(text="Givetitle", command=makeTroops)
 makeTroopsBtn.pack()
 startCaptchaBtn = tk.Button(text="Captcha", command=startCaptcha)
