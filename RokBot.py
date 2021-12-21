@@ -1,9 +1,11 @@
 import queue
 import time
+import threading
 
 class RokBot:
   def __init__(self):
     self.queue = queue.Queue()
+    threading.Thread(target=self.captchaSolver, daemon=True).start()
 
   def start(self):
     while True:
@@ -21,3 +23,10 @@ class RokBot:
   def log(self, message):
     prefix = 'RoK Bot: '
     print(prefix + message)
+  
+  # This function is supose to run in another thread. It is a infine loop 
+  # with 7.5min (450 seconds) interval (configurable).
+  def captchaSolver(self, interval=450):
+    while True:
+      # TODO: Run a function to resolve captcha.
+      time.sleep(interval)
