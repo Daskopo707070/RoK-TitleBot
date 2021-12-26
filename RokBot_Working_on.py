@@ -13,7 +13,7 @@ import cv2
 
 class RokBot:
 
-  api_key = os.getenv('APIKEY_2CAPTCHA', 'Api-Key')
+  api_key = os.getenv('APIKEY_2CAPTCHA', '1045782adc6d85ae5a0ef738d78a6c31')
   solver = TwoCaptcha(api_key, defaultTimeout=120, pollingInterval=5)
 
   xRes = 1920
@@ -61,6 +61,7 @@ class RokBot:
     self.tap(.2,.6)
     
     cmd = 'input text ' + order.Y
+    self.device.shell(cmd)
 
     self.tap(.2,.7)
     self.tap(.2,.7)
@@ -93,6 +94,7 @@ class RokBot:
   # This function is supose to run in another thread. It is a infine loop 
   # with 7.5min (450 seconds) interval (configurable).
   def captchaSolver(self, interval=450):
+    time.sleep(20)
     while True:
       self.startCaptcha()
       time.sleep(interval)
@@ -205,7 +207,7 @@ class RokBot:
       img = cv2.imread("captchaClean.png",0)
       img = cv2.resize(img,(100,100),fx=1.1,fy=1.1, interpolation=cv2.INTER_CUBIC)
       cv2.imwrite("screenshots/captcha.png",img)
-      template = cv2.imread("ob"+objN+".png", 0)
+      template = cv2.imread("Template.png", 0)
 
       if x % 2 != 0:
         whiteBG = False
@@ -218,7 +220,7 @@ class RokBot:
           template = cv2.imread("template.png", 0)
         template = cv2.resize(template,(100,100),fx=1.1,fy=1.1, interpolation=cv2.INTER_CUBIC)
 
-        for j in range (1):
+        for j in range (36):
           img = cv2.imread('screenshots/captcha.png', 0)
           img2 = cv2.imread('screenshots/captcha.png', 1)
           template=self.rotate_image(template, 10,whiteBG)
@@ -267,7 +269,7 @@ class RokBot:
       img = cv2.resize(img,(100,100),fx=1.1,fy=1.1, interpolation=cv2.INTER_CUBIC)
       cv2.imwrite("screenshots/captcha.png",img)
       method = cv2.TM_SQDIFF_NORMED
-      template = cv2.imread("ob"+objN+".png", 0)
+      template = cv2.imread("Check.png", 0)
 
       if x % 2 != 0:
         whiteBG = False
@@ -280,7 +282,7 @@ class RokBot:
           template = cv2.imread("check.png", 0)
         template = cv2.resize(template,(100,100),fx=1.1,fy=1.1, interpolation=cv2.INTER_CUBIC)
 
-        for j in range (1):
+        for j in range (36):
           img = cv2.imread('screenshots/captcha.png', 0)
           img2 = cv2.imread('screenshots/captcha.png', 1)
           template=self.rotate_image(template, 10,whiteBG)
@@ -355,6 +357,7 @@ class RokBot:
   def TestCaptcha(self, whiteBG):
     captcha = False
     self.screenshotOfCaptcha()
+    self.getPuzzleImageFromCaptcha()
     captcha = self.findObj("1",whiteBG)
 
     if captcha == True:
@@ -370,11 +373,11 @@ class RokBot:
     self.lookingForCaptcha = True
 
     start = time.time()
-    self.tap(.2,.7)
-    self.tap(.5,.6)
+    self.tap(.2,.65)
+    self.tap(.5,.55)
 
     time.sleep(1)
-    self.testCaptcha(False)
+    self.TestCaptcha(False)
 
     end = time.time()
     print("It took me: ", str(end - start), "s to find 1 object")
@@ -386,3 +389,5 @@ class RokBot:
     self.tap(0.1,0.1)
     
     self.lookingForCaptcha = False
+
+#bala bla
