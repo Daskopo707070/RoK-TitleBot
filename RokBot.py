@@ -26,6 +26,7 @@ class RokBot:
 
   inTap = False
   lookingForCaptcha = False
+  isProcessingTitle = False
 
 
   def __init__(self):
@@ -43,12 +44,17 @@ class RokBot:
     while True:
       order = self.queue.get()
       self.log('Task received.')
+
+      # Wait until lookingFor Captcha finishes
+      while self.lookingForCaptcha:
+        time.sleep(1)
+
+      self.isProcessingTitle = True
       self.processRequest(order)
       self.queue.task_done()
+      self.isProcessingTitle = False
 
-  def processRequest(self, order):
-
-    
+  def processRequest(self, order):    
     self.log(f'Giving title {order.title} to user {order.orderer}')
     
     # Search coords
@@ -125,7 +131,13 @@ class RokBot:
   def captchaSolver(self, interval=450):
     #time.sleep(10)
     while True:
+      # Wait processing title
+      while self.isProcessingTitle:
+        time.sleep(1)
+        
+      self.lookingForCaptcha = True
       #self.startCaptcha()
+      self.lookingForCaptcha = False
       time.sleep(interval)
 
   def resource_path(self,relative_path):
@@ -399,8 +411,6 @@ class RokBot:
   #Starts the capthca solving
   def startCaptcha(self):
 
-    self.lookingForCaptcha = True
-
     start = time.time()
     self.tap(.2,.65)
     self.tap(.5,.55)
@@ -416,5 +426,3 @@ class RokBot:
     self.tap(0.1,0.1)
     time.sleep(.5)
     self.tap(0.1,0.1)
-    
-    self.lookingForCaptcha = False
