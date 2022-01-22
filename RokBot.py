@@ -1,6 +1,7 @@
 import queue
 import time
 import threading
+import Title_Order
 from ppadb.client import Client
 from PIL import Image
 import numpy
@@ -12,7 +13,7 @@ import cv2
 
 class RokBot:
 
-  api_key = os.getenv('APIKEY_2CAPTCHA', 'API_KEY')
+  api_key = os.getenv('APIKEY_2CAPTCHA', '2b744fbb13dd4685311c2ca09f472acf')
   solver = TwoCaptcha(api_key, defaultTimeout=120, pollingInterval=5)
 
   xRes = 1920
@@ -27,7 +28,6 @@ class RokBot:
   inTap = False
   lookingForCaptcha = False
   isProcessingTitle = False
-
 
   def __init__(self):
     
@@ -44,19 +44,24 @@ class RokBot:
     while True:
       order = self.queue.get()
       self.log('Task received.')
-
-      # Wait until lookingFor Captcha finishes
-      while self.lookingForCaptcha:
-        time.sleep(1)
-
-      self.isProcessingTitle = True
       self.processRequest(order)
       self.queue.task_done()
-      self.isProcessingTitle = False
 
-  def processRequest(self, order):    
+  def processRequest(self, order):
+
     self.log(f'Giving title {order.title} to user {order.orderer}')
-    
+
+    while self.lookingForCaptcha:
+        time.sleep(1)
+
+    self.isProcessingTitle = True
+    success = False
+    check = False
+    i=0
+    Xtitle = 0
+    Ytitle = 0
+
+
     # Search coords
     self.tap(.06,.25) 
     self.tap(.2,.5)
@@ -77,26 +82,102 @@ class RokBot:
 
     time.sleep(1) #delay so map has time to move
 
-    #self.tap(0.466,0.4248)
 
-    self.tap(0.5,0.435)
+    while check == False:
 
-    #search coords ends
+      if i == 0:
+        print("try tap city 1")
+        self.tap(0.484,0.426)
+      
+      if i == 1:
+        print("try 2")
+        self.tap(0.526,0.426)
+
+      if i == 2:
+        print("try 3")
+        self.tap(0.526,0.485)
+
+      if i == 3:
+        print("try 4")
+        self.tap(0.526,0.367)
+
+      if i == 4:
+        print("try 5")
+        self.tap(0.484,0.485)
+
+      if i == 5:
+        print("try 6")
+        self.tap(0.484,0.367)
+
+      if i == 6:
+        print("try 7")
+        self.tap(0.432,0.367)   
+
+      if i == 7:
+        print("try 8")
+        self.tap(0.484,0.426) 
+
+      if i == 8:
+        print("try 9")
+        self.tap(0.484,0.485) 
+      
+      i = i + 1
+
+      time.sleep(0.5)
+
+      self.Screenshot()
+
+      time.sleep(0.5)
+
+      check, Xtitle, Ytitle = self.CheckCity()
+
+  
+      if i == 9:
+        print("Fail")
+        check = True
+
+
+    if i != 9:
+      print("success")
+
+    Xtap = (Xtitle-554)/(1690)
+    Ytap = (Ytitle-554)/(1690)
+    self.tap(Ytap,Xtap)
+
+    self.giveTitle(order)
+
+    self.tap(0.895,0.5)
+
+    self.tap(0.1,0.1)
 
     time.sleep(1)
-    # TODO: read the title order and give title (tune title giving orders)
-    
-    self.tap(0.2737,0.668) #tap title spot (Try Try Try!)
-    self.tap(0.2737,0.638)
-    self.tap(0.2737,0.608)
-    self.tap(0.2737,0.578)
-    self.tap(0.2737,0.548)
-    self.tap(0.2737,0.518)
-    self.tap(0.2737,0.488)
-    self.tap(0.2737,0.468)
 
-    time.sleep(0.5)
+    self.tap(0.95,0.95)
     
+    self.log('Request finished')
+
+    self.isProcessingTitle = False
+
+  def log(self, message):
+    prefix = 'RoK Bot: '
+    print(prefix + message)
+  
+  # This function is supose to run in another thread. It is a infine loop 
+  # with 7.5min (450 seconds) interval (configurable).
+  def captchaSolver(self, interval=450):
+    time.sleep(10)
+    while True:
+      while self.isProcessingTitle:
+        time.sleep(1)
+      self.startCaptcha()
+      time.sleep(interval)
+
+      self.lookingForCaptcha = False
+
+
+
+
+  def giveTitle(self,order):
     if order.title == "justice":
       print("justice")
       self.tap(0.545,0.23) #Justice coord
@@ -112,38 +193,50 @@ class RokBot:
 
     self.tap(0.895,0.5)
 
-    self.tap(0.1,0.1)
-
-    time.sleep(1)
-
-    self.tap(0.95,0.95)
-
-    time.sleep(1)
-
-    self.log('Request finished')
-
-  def log(self, message):
-    prefix = 'RoK Bot: '
-    print(prefix + message)
-  
-  # This function is supose to run in another thread. It is a infine loop 
-  # with 7.5min (450 seconds) interval (configurable).
-  def captchaSolver(self, interval=450):
-    #time.sleep(10)
-    while True:
-      # Wait processing title
-      while self.isProcessingTitle:
-        time.sleep(1)
-        
-      self.lookingForCaptcha = True
-      #self.startCaptcha()
-      self.lookingForCaptcha = False
-      time.sleep(interval)
-
   def resource_path(self,relative_path):
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, relative_path)
     return os.path.join(os.path.abspath("."), relative_path)
+
+  def Screenshot(self):
+    image = self.device.screencap()
+    with open(self.resource_path('Citycheck.png'), 'wb') as f:
+      f.write(image)
+    return
+
+  def CheckCity(self):
+
+    method = cv2.TM_SQDIFF_NORMED
+
+    image = cv2.imread('Citycheck.png')
+
+    template = cv2.imread('Citymatch.png')
+
+    result = cv2.matchTemplate(image, template, method)
+
+    mn,_,mnLoc,_ = cv2.minMaxLoc(result)
+
+    MPx,MPy = mnLoc
+
+    trows,tcols = template.shape[:2]
+
+    cv2.rectangle(image, (MPx,MPy),(MPx+tcols,MPy+trows),(0,0,255),2)
+
+ 
+
+    crop_img1 = image[MPy:MPy+trows,MPx:MPx+tcols]
+
+    res = cv2.matchTemplate(crop_img1,template,cv2.TM_CCOEFF_NORMED)
+
+
+    if res[0][0] > 0.8:
+      print("success")
+      return True,MPx+tcols,MPy+trows
+
+    else:
+      print("fail")
+      return False, 0, 0
+
 
   #screenshots whole screen and cuts the part where theres the captcha and its info to a png. Also saves a copy as JPG for capthca solving service (png too big)
   def screenshotOfCaptcha(self):
@@ -181,6 +274,8 @@ class RokBot:
 
     return
 
+
+
   #In order to get the best result possible, isolate the puzzle image from captcha from all its irrelevand info
   def getPuzzleImageFromCaptcha(self):
       image = Image.open(self.resource_path('captcha.png'))
@@ -201,7 +296,6 @@ class RokBot:
 
       newImage = numpy.array(newImage, dtype=numpy.uint8)
       im = Image.fromarray(newImage)
-      randomN = randrange(20)
       ran= "captchaClean.png"
       im.save(self.resource_path(ran))
       print("End of get puzzle")
@@ -234,13 +328,9 @@ class RokBot:
     return result
 
   #returns True if captcha is found in the screenshot
-  def findObj(self,objN,whiteBG):
+  def findObj(self,whiteBG):
     print("finobj begins")
     maxValue=0
-    maxI=0
-    maxX=0
-    px=0
-    py=0
     tempres = []
     tempres.append(0)
 
@@ -282,15 +372,6 @@ class RokBot:
 
           cv2.rectangle(img2, top_left, bottom_right, (0, 255, 0), 2) #draw a rectangle on what seems the best match
 
-          if (numpy.amax(res) > maxValue):
-            maxValue= numpy.amax(res)
-            px=top_left[0]*1.3  + w # X position where ROKBOT has to tap (there has a resizing of the captcha, so it has to be resized here by 1.3)
-            py=top_left[1]*1.3 + h # Y position where ROKBOT has to tap (there has a resizing of the captcha, so it has to be resized here by 1.3)
-            maxI = i
-            maxJ = j
-            maxX = x
-            cv2.imwrite("bestMatch"+objN+".png",img2)
-
     if tempres != [0]:
       print("captcha")
       return True
@@ -299,7 +380,7 @@ class RokBot:
       return False
 
   #Basically a copy of findObj. Needs to be surgically removed from code and use one of the with filename parameter.
-  def Check(self,objN,whiteBG):
+  def Check(self,whiteBG):
     maxValue=0
 
     tempres = []
@@ -341,14 +422,6 @@ class RokBot:
           bottom_right = (top_left[0] + w, top_left[1] + h)
           cv2.rectangle(img2, top_left, bottom_right, (0, 255, 0), 2) #draw a rectangle on what seems the best match
 
-          if (numpy.amax(res) > maxValue):
-            maxValue= numpy.amax(res)
-            px=top_left[0]*1.3  + w # X position where ROKBOT has to tap (there has a resizing of the captcha, so it has to be resized here by 1.3)
-            py=top_left[1]*1.3 + h # Y position where ROKBOT has to tap (there has a resizing of the captcha, so it has to be resized here by 1.3)
-            maxI = i
-            maxJ = j
-            maxX = x
-            cv2.imwrite("bestMatchCheck.png",img2)
     print(tempres)
     if tempres != [0]:
       print("captcha")
@@ -368,7 +441,7 @@ class RokBot:
       self.SolveCaptcha()
       self.screenshotOfCaptcha()
 
-      if self.Check("1",False) == True:
+      if self.Check(False) == True:
         return
     else:
       results = result.values()
@@ -389,7 +462,7 @@ class RokBot:
       time.sleep(3)
       self.screenshotOfCaptcha()
 
-      if self.Check("1",False) == True:
+      if self.Check(False) == True:
         print("Captcha not solved")
         self.SolveCaptcha()
       return
@@ -399,7 +472,7 @@ class RokBot:
     captcha = False
     self.screenshotOfCaptcha()
     self.getPuzzleImageFromCaptcha()
-    captcha = self.findObj("1",whiteBG)
+    captcha = self.findObj(whiteBG)
 
     if captcha == True:
       print("capthca spotted")
@@ -411,8 +484,10 @@ class RokBot:
   #Starts the capthca solving
   def startCaptcha(self):
 
+    self.lookingForCaptcha = True
+
     start = time.time()
-    self.tap(.2,.65)
+    self.tap(.2,.75)
     self.tap(.5,.55)
 
     time.sleep(1)
@@ -426,3 +501,7 @@ class RokBot:
     self.tap(0.1,0.1)
     time.sleep(.5)
     self.tap(0.1,0.1)
+    
+    self.lookingForCaptcha = False
+
+#bala bla
