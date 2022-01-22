@@ -13,7 +13,7 @@ import cv2
 
 class RokBot:
 
-  api_key = os.getenv('APIKEY_2CAPTCHA', '2b744fbb13dd4685311c2ca09f472acf')
+  api_key = os.getenv('APIKEY_2CAPTCHA', 'not api key')
   solver = TwoCaptcha(api_key, defaultTimeout=120, pollingInterval=5)
 
   xRes = 1920
